@@ -1,0 +1,33 @@
+{
+  "name": "shiratsuyu",
+  "version": "1.0.0",
+  "description": "Discord bot that can analyse chat from twitch VODs",
+  "main": "bot.js",
+  "scripts": {
+    "test": "node bot.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BielefeldJ/Shiratsuyu.git"
+  },
+  "keywords": [
+    "discordbot",
+    "twitch",
+    "vod",
+    "chat",
+    "twitchchat",
+    "analyse"
+  ],
+  "author": "BielefeldJ",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/BielefeldJ/Shiratsuyu/issues"
+  },
+  "homepage": "https://github.com/BielefeldJ/Shiratsuyu#readme",
+  "dependencies": {
+    "@discordjs/builders": "^0.11.0",
+    "@discordjs/rest": "^0.2.0-canary.0",
+    "discord-api-types": "^0.26.1",
+    "discord.js": "^13.5.0"
+  }
+}
