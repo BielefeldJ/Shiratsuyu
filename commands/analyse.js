@@ -16,7 +16,7 @@ module.exports = {
 			const parts = url.split('/');
 			const vodId = parts.at(-1);
 			await interaction.reply(`I'm reading chat now. Please give ma a few seconds. :eyeglasses: :hourglass_flowing_sand: `);
-			const chatlog = JSON.parse(shell.exec(`twitch-chatlog ${vodId} -raw -l 0`, {silent:true}).stdout);
+			const chatlog = await JSON.parse(shell.exec(`twitch-chatlog ${vodId} -raw -l 0`, {silent:true}).stdout);
 
 			var user={};
 			var emotecount=0;
@@ -102,21 +102,30 @@ module.exports = {
 			//sort all arrays
 			const topchatter = Object.entries(user).sort(([,a],[,b]) => b-a); //sort top chatter
 			const sortedsubgifts = Object.entries(subgifts).sort(([,a],[,b]) => b-a); //sort subgifters
-			const sortedsubs = Object.entries(subs).sort(([,a],[,b]) => b-a);
-			
+			const sortedsubs = Object.entries(subs).sort(([,a],[,b]) => b-a);			
 			const sortedbits = Object.entries(bitsspent).sort(([,a],[,b]) => b-a);
+
 			//var ikuemotecount;
 			if(iku)
 			{
-				const sortedemotes = Object.entries(ikuemotes).sort(([,a],[,b]) => b-a);
-				var ikuemotecount = sortedemotes.map(function(v) { return v[1] }).reduce(function(a,b) { return a + b });  // sum only the seccond part of the array
+				var sortedemotes = Object.entries(ikuemotes).sort(([,a],[,b]) => b-a);
+				if(sortedemotes && sortedemotes.length)
+					var ikuemotecount = sortedemotes.map(function(v) { return v[1] }).reduce(function(a,b) { return a + b });  // sum only the seccond part of the array
 			}
 
-						
-			const bitstotal = sortedbits.map(function(v) { return v[1] }).reduce(function(a,b) { return a + b });  // sum only the seccond part of the array
-			const totalsubs = sortedsubs.map(function(v) { return v[1] }).reduce(function(a,b) { return a + b });  // sum only the seccond part of the array
-			const totalgiftsubs = sortedsubgifts.map(function(v) { return v[1] }).reduce(function(a,b) { return a + b });  // sum only the seccond part of the array
+			if(sortedbits && sortedbits.length)			
+				var bitstotal = sortedbits.map(function(v) { return v[1] }).reduce(function(a,b) { return a + b });  // sum only the seccond part of the array
+			if(sortedsubs && sortedsubs.length)
+				var totalsubs = sortedsubs.map(function(v) { return v[1] }).reduce(function(a,b) { return a + b });  // sum only the seccond part of the array
+			if(sortedsubgifts && sortedsubgifts.length)
+				var totalgiftsubs = sortedsubgifts.map(function(v) { return v[1] }).reduce(function(a,b) { return a + b });  // sum only the seccond part of the array
 			
+			function parse(x)
+			{
+				const parsed = parseInt(x);
+				if (isNaN(parsed)) { return 0; }
+				return parsed;
+			}
 			let answer='```';
 			answer+=`=============== CHAT ===============\n`;
 			answer+=`In total, there were ${topchatter.length} different user in chat. The top 5 user today:\n`;
@@ -135,23 +144,23 @@ module.exports = {
 
 			//subs
 			answer+=`\n=============== SUBS ===============\n`
-			answer+=`There were a total of ${totalsubs+totalgiftsubs} subs today. ${totalgiftsubs} of them were gift subs.\n`;
+			answer+=`There were a total of ${parse(totalsubs)+parse(totalgiftsubs)} subs today. ${parse(totalgiftsubs)} of them were gift subs.\n`;
 			answer+=`In total, ${sortedsubgifts.length} user gifted subs today. The top 5 gifters are: \n`;
 			for(let i=0;i<5;i++)
 			{	
 				if(i>=sortedsubgifts.length)
 					break;
-					answer+=`\t ${i+1}: ${sortedsubgifts[i][0]} with a total of ${sortedsubgifts[i][1]} giftsubs.\n`;
+				answer+=`\t ${i+1}: ${sortedsubgifts[i][0]} with a total of ${sortedsubgifts[i][1]} giftsubs.\n`;
 			}
 			//Bits			
 			answer+="\n=============== BITS ===============\n";
-			answer+=`In total, there were ${bitstotal} Bits spend on this stream.\n`;
-			answer+=`${sortedbits.length} user used bits today. The top 5 are:\n `;
+			answer+=`In total, there were ${parse(bitstotal)} Bits spend on this stream.\n`;
+			answer+=`${sortedbits.length} user used bits today. The top 5 are:\n`;
 			for(let i=0;i<5;i++)
 			{	
 				if(i>=sortedbits.length)
 					break;
-					answer+=`\t ${i+1}: ${sortedbits[i][0]} with a total of ${sortedbits[i][1]} Bits.\n`;
+				answer+=`\t ${i+1}: ${sortedbits[i][0]} with a total of ${sortedbits[i][1]} Bits.\n`;
 			}
 			answer+='```';
 			return interaction.editReply("Okay, I'm done reading. Here are your requested stats for the stream with id \""+ vodId + "\": \n " + answer);
