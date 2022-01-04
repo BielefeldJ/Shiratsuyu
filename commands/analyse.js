@@ -5,9 +5,12 @@ module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('analyse')
 		.setDescription('Analyse the chat of a twitch VOD')
-		.addStringOption(option => option.setName('url').setDescription('The URL of the twitch VOD').setRequired(true)),
+		.addStringOption(option => option.setName('url').setDescription('The URL of the twitch VOD').setRequired(true))
+		.addBooleanOption(option => option.setName('ikuemotes').setDescription('If set to true, the bot will give stats for ikus emotes.')),
 	async execute(interaction) {
 		const url = interaction.options.getString('url');	
+		const iku = interaction.options.getBoolean('ikuemotes');
+
 		if(url.startsWith("https://www.twitch.tv/videos/") || url.startsWith("www.twitch.tv/videos/") || url.startsWith("https://twitch.tv/videos/"))	
 		{
 			const parts = url.split('/');
@@ -26,29 +29,31 @@ module.exports = {
 				if(message["message"]["emoticons"])
 					emotecount+= message["message"]["emoticons"].length;
 
-				//count ikus emotes	
-				//I'm using regex for this, because twitch emote id system is kinda weird
-				let ikuregex = /ikusou[A-Z][a-zA-Z0-9]*/; //emotes use the same prefix followed by a capital letter. example: ikusouSax 
+				if(iku)
+				{		
+					//count ikus emotes	
+					//I'm using regex for this, because twitch emote id system is kinda weird
+					let ikuregex = /ikusou[A-Z][a-zA-Z0-9]*/; //emotes use the same prefix followed by a capital letter. example: ikusouSax 
 
-				if(message["message"]["fragments"]) //message is split into fragments. Every emote has an one fragment
-				{
-					message["message"]["fragments"].forEach(frag => {	
+					if(message["message"]["fragments"]) //message is split into fragments. Every emote has an one fragment
+					{
+						message["message"]["fragments"].forEach(frag => {	
 
-						if(frag["emoticon"])
-						{
-							let emote = frag["text"];
-							if(ikuregex.test(emote))
+							if(frag["emoticon"])
 							{
-								if(ikuemotes.hasOwnProperty(emote))
-									ikuemotes[emote]++;
-								else
-									ikuemotes[emote]=1;
+								let emote = frag["text"];
+								if(ikuregex.test(emote))
+								{
+									if(ikuemotes.hasOwnProperty(emote))
+										ikuemotes[emote]++;
+									else
+										ikuemotes[emote]=1;
+								}
 							}
-						}
-					});
+						});
+					}
+					//ikusouFUNK ikusouHorn ikusouSax ikusouDrums ikusouHappy ikusouHat ikusouL ikusouLady ikusouMJ ikusouDenka ikusouClassic ikusouFuji ikusouSamurai ikusouKampai ikusouFlower ikusouJ5 ikusouDDYUKA
 				}
-				//ikusouFUNK ikusouHorn ikusouSax ikusouDrums ikusouHappy ikusouHat ikusouL ikusouLady ikusouMJ ikusouDenka ikusouClassic ikusouFuji ikusouSamurai ikusouKampai ikusouFlower ikusouJ5 ikusouDDYUKA
-
 				//count messages from mods
 				if(message["message"]["user_badges"] && message["message"]["user_badges"][0]["_id"] === "moderator")
 					modmsgcount++;
@@ -97,11 +102,17 @@ module.exports = {
 			//sort all arrays
 			const topchatter = Object.entries(user).sort(([,a],[,b]) => b-a); //sort top chatter
 			const sortedsubgifts = Object.entries(subgifts).sort(([,a],[,b]) => b-a); //sort subgifters
-			const sortedsubs = Object.entries(subs).sort(([,a],[,b]) => b-a); 
-			const sortedemotes = Object.entries(ikuemotes).sort(([,a],[,b]) => b-a);
+			const sortedsubs = Object.entries(subs).sort(([,a],[,b]) => b-a);
+			
 			const sortedbits = Object.entries(bitsspent).sort(([,a],[,b]) => b-a);
+			//var ikuemotecount;
+			if(iku)
+			{
+				const sortedemotes = Object.entries(ikuemotes).sort(([,a],[,b]) => b-a);
+				var ikuemotecount = sortedemotes.map(function(v) { return v[1] }).reduce(function(a,b) { return a + b });  // sum only the seccond part of the array
+			}
 
-			const ikuemotecount = sortedemotes.map(function(v) { return v[1] }).reduce(function(a,b) { return a + b });  // sum only the seccond part of the array
+						
 			const bitstotal = sortedbits.map(function(v) { return v[1] }).reduce(function(a,b) { return a + b });  // sum only the seccond part of the array
 			const totalsubs = sortedsubs.map(function(v) { return v[1] }).reduce(function(a,b) { return a + b });  // sum only the seccond part of the array
 			const totalgiftsubs = sortedsubgifts.map(function(v) { return v[1] }).reduce(function(a,b) { return a + b });  // sum only the seccond part of the array
@@ -115,9 +126,13 @@ module.exports = {
 			//emotes
 			answer+=`=============== EMOTES ===============\n`;
 			answer+=`In all ${chatlog.length} messages, ${emotecount} emotes were used.\n`;
-			answer+=`${ikuemotecount} of them were ikus emotes. The top 5 of ikus emote were:\n`;
-			for(let i=0;i<5;i++)
-				answer+=`\t ${i+1}: Emote ${sortedemotes[i][0]} was used ${sortedemotes[i][1]} times.\n`;
+			if(iku)
+			{
+				answer+=`${ikuemotecount} of them were ikus emotes. The top 5 of ikus emote were:\n`;
+				for(let i=0;i<5;i++)
+					answer+=`\t ${i+1}: Emote ${sortedemotes[i][0]} was used ${sortedemotes[i][1]} times.\n`;
+			}
+
 			//subs
 			answer+=`\n=============== SUBS ===============\n`
 			answer+=`There were a total of ${totalsubs+totalgiftsubs} subs today. ${totalgiftsubs} of them were gift subs.\n`;
