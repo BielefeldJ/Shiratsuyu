@@ -1,6 +1,7 @@
 const { Client, Collection, Intents } = require('discord.js');
 const { token } = require('./config.json');
 const fs = require('fs');
+const proc = require('process');
 
 const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
@@ -32,3 +33,12 @@ client.on('interactionCreate', async interaction => {
 });
 
 client.login(token);
+
+proc.on('uncaughtException', function(err) {
+	client.channels.fetch('927873942440509440').then(channel => {
+		channel.send("<@553693650882920468> I'm sorry, b.. but I made a mistake. Gomenasai~ o((>ω< ))o  Can you please take a look at this? ＞﹏＜");
+		channel.send('``` ' + err.stack + '```');
+		console.error(err);
+	});
+  });
+
