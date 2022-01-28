@@ -6,10 +6,10 @@ module.exports = {
 		.setName('analyse')
 		.setDescription('Analyse the chat of a twitch VOD')
 		.addStringOption(option => option.setName('url').setDescription('The URL of the twitch VOD').setRequired(true))
-		.addBooleanOption(option => option.setName('ikuemotes').setDescription('If set to true, the bot will give stats for ikus emotes.')),
+		.addStringOption(option => option.setName('emoteprefix').setDescription('Prefix that the emotes use. To get more info about used emotes')),
 	async execute(interaction) {
 		const url = interaction.options.getString('url');	
-		const iku = interaction.options.getBoolean('ikuemotes');
+		const emoteprefix = interaction.options.getString('emoteprefix');
 
 		if(url.startsWith("https://www.twitch.tv/videos/") || url.startsWith("www.twitch.tv/videos/") || url.startsWith("https://twitch.tv/videos/"))	
 		{
@@ -22,18 +22,18 @@ module.exports = {
 			var emotecount=0;
 			var modmsgcount=0, botcount=0;
 			var subs={};subgifts={};
-			var ikuemotes={};
+			var channelemotes={};
 			var bitsspent={};
 			chatlog.forEach(message =>{
 				//count emotes
 				if(message["message"]["emoticons"])
 					emotecount+= message["message"]["emoticons"].length;
 
-				if(iku)
+				if(emoteprefix)
 				{		
 					//count ikus emotes	
 					//I'm using regex for this, because twitch emote id system is kinda weird
-					let ikuregex = /ikusou[A-Z][a-zA-Z0-9]*/; //emotes use the same prefix followed by a capital letter. example: ikusouSax 
+					let emoteregx = new RegExp(emoteprefix + '[A-Z][a-zA-Z0-9]'); //emotes use the same prefix followed by a capital letter. example: ikusouSax 
 
 					if(message["message"]["fragments"]) //message is split into fragments. Every emote has an one fragment
 					{
@@ -42,12 +42,12 @@ module.exports = {
 							if(frag["emoticon"])
 							{
 								let emote = frag["text"];
-								if(ikuregex.test(emote))
+								if(emoteregx.test(emote))
 								{
-									if(ikuemotes.hasOwnProperty(emote))
-										ikuemotes[emote]++;
+									if(channelemotes.hasOwnProperty(emote))
+									channelemotes[emote]++;
 									else
-										ikuemotes[emote]=1;
+									channelemotes[emote]=1;
 								}
 							}
 						});
@@ -105,12 +105,12 @@ module.exports = {
 			const sortedsubs = Object.entries(subs).sort(([,a],[,b]) => b-a);			
 			const sortedbits = Object.entries(bitsspent).sort(([,a],[,b]) => b-a);
 
-			//var ikuemotecount;
-			if(iku)
+			//var channelemotecount;
+			if(emoteprefix)
 			{
-				var sortedemotes = Object.entries(ikuemotes).sort(([,a],[,b]) => b-a);
+				var sortedemotes = Object.entries(channelemotes).sort(([,a],[,b]) => b-a);
 				if(sortedemotes && sortedemotes.length)
-					var ikuemotecount = sortedemotes.map(function(v) { return v[1] }).reduce(function(a,b) { return a + b });  // sum only the seccond part of the array
+					var channelemotecount = sortedemotes.map(function(v) { return v[1] }).reduce(function(a,b) { return a + b });  // sum only the seccond part of the array
 			}
 
 			if(sortedbits && sortedbits.length)			
@@ -135,9 +135,9 @@ module.exports = {
 			//emotes
 			answer+=`=============== EMOTES ===============\n`;
 			answer+=`In all ${chatlog.length} messages, ${emotecount} emotes were used.\n`;
-			if(iku)
+			if(emoteprefix)
 			{
-				answer+=`${ikuemotecount} of them were ikus emotes. The top 5 of ikus emote were:\n`;
+				answer+=`${channelemotecount} of them were ikus emotes. The top 5 of ikus emote were:\n`;
 				for(let i=0;i<5;i++)
 					answer+=`\t ${i+1}: Emote ${sortedemotes[i][0]} was used ${sortedemotes[i][1]} times.\n`;
 			}
