@@ -29,6 +29,7 @@
     "@discordjs/rest": "^0.2.0-canary.0",
     "discord-api-types": "^0.26.1",
     "discord.js": "^13.5.0",
+    "ipc-healthcheck": "github:BielefeldJ/ipc-healthcheck",
     "shelljs": "^0.8.4"
   }
 }
