@@ -38,7 +38,7 @@ client.on('interactionCreate', async interaction => {
 client.login(token);
 
 //healthcheck stuff
-const healthcheck = new HealthcheckServer('twitchbots',100,1000,true);
+const healthcheck = new HealthcheckServer('twitchbots',100,5000,true);
 
 healthcheck.on('serviceCrashed', name => {
 	client.channels.fetch(notifyChannel).then(channel => {
@@ -52,6 +52,9 @@ healthcheck.on('serviceError', (err,service) => {
 		channel.send('```' + err + '```');
 	});
 });
+
+//start healthcheck server
+healthcheck.startServer();
 
 proc.on('uncaughtException', function(err) {
 	client.channels.fetch(notifyChannel).then(channel => {
