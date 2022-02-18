@@ -15,7 +15,7 @@ module.exports = {
 		{
 			const parts = url.split('/');
 			const vodId = parts.at(-1);
-			if(isNAN(parseInt(vodId)))
+			if(isNaN(parseInt(vodId)))
 			{
 				await interaction.reply(`I didn't found a valid VOD ID there.. Sorry 😥 I only found this. ${vodId}`);
 				return;
