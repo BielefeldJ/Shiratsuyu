@@ -11,10 +11,15 @@ module.exports = {
 		const url = interaction.options.getString('url');	
 		const emoteprefix = interaction.options.getString('emoteprefix');
 
-		if(url.startsWith("https://www.twitch.tv/videos/") || url.startsWith("www.twitch.tv/videos/") || url.startsWith("https://twitch.tv/videos/"))	
+		if(url.startsWith("https://www.twitch.tv/") || url.startsWith("www.twitch.tv/") || url.startsWith("https://twitch.tv/"))	
 		{
 			const parts = url.split('/');
 			const vodId = parts.at(-1);
+			if(!Number.isInteger(vodId))
+			{
+				await interaction.reply(`I didn't found a valid VOD ID there.. Sorry 😥 I only found this. ${vodId}`);
+				return;
+			}
 			await interaction.reply(`I'm reading chat now. Please give ma a few seconds. :eyeglasses: :hourglass_flowing_sand: `);
 			const chatlog = await JSON.parse(shell.exec(`twitch-chatlog ${vodId} -raw -l 0`, {silent:true}).stdout);
 
