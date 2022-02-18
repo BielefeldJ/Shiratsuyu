@@ -40,16 +40,22 @@ client.login(token);
 //healthcheck stuff
 const healthcheck = new HealthcheckServer('twitchbots',100,5000,true);
 
-healthcheck.on('serviceCrashed', name => {
+healthcheck.on('serviceCrashed', service => {
 	client.channels.fetch(notifyChannel).then(channel => {
-		channel.send(`Umm.. <@553693650882920468>..  ${name} doesn't answer me anymore o((>ω< ))o Can you check whats wrong there? Thank you ❤️`);
+		channel.send(`Umm.. <@553693650882920468>..  ${service.name} doesn't answer me anymore o((>ω< ))o Can you check whats wrong there? Thank you ❤️`);
 	});
 });
 
-healthcheck.on('serviceError', (err,service) => {
+healthcheck.on('serviceNotify', (err,service) => {
 	client.channels.fetch(notifyChannel).then(channel => {
 		channel.send(`${service.name} told me, that there was an error. I hope ${service.name} is still okay tho 😟. Let me forward it to you <@553693650882920468>:`);
 		channel.send('```' + err + '```');
+	});
+});
+
+healthcheck.on('serviceRegistered', service => {
+	client.channels.fetch(notifyChannel).then(channel => {
+		channel.send(`${service.name} is now online ^-^.`);
 	});
 });
 
@@ -58,7 +64,7 @@ healthcheck.startServer();
 
 proc.on('uncaughtException', function(err) {
 	client.channels.fetch(notifyChannel).then(channel => {
-		channel.send("<@553693650882920468> I'm sorry, b.. but I made a mistake. Gomenasai~ o((>ω< ))o  Can you please take a look at this? ＞﹏＜");
+		channel.send("<@553693650882920468> I'm sorry, b.. but I made a mistake. o((>ω< ))o  Can you please take a look at this? ＞﹏＜");
 		channel.send('``` ' + err.stack + '```');
 		console.error(err);
 	});
